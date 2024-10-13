@@ -23,7 +23,7 @@ if (!empty($_POST)) {
     //Hacemos el cálculo de los datos pedidos
     $data['json_calculos'] = calcNotas($json);
     //Hacemos una lista con la distribución de alumnos
-    $ata['listados'] = listadoAlumnos($json);
+    $data['listados'] = listadoAlumnos($json);
   }
 
 }
@@ -211,16 +211,16 @@ function listadoAlumnos(array $json): array
   foreach ($suspensosAlumno as $alumno => $suspensos) {
     //Clasificamos a los alumnos según tengan algún suspenso o no
     if ($suspensos === 0) {
-      $listaAlumnos['sinSuspensos'] = $alumno;
+      $listaAlumnos['sinSuspensos'][] = $alumno;
     } else {
-      $listaAlumnos['conSuspensos'] = $alumno;
+      $listaAlumnos['conSuspensos'][] = $alumno;
     }
 
     //Clasificamos a los alumnos según promocionen o no
     if ($suspensos <= 1) {
-      $listaAlumnos['promocionan'] = $alumno;
+      $listaAlumnos['promocionan'][] = $alumno;
     } else {
-      $listaAlumnos['noPromocionan'] = $alumno;
+      $listaAlumnos['noPromocionan'][] = $alumno;
     }
   }
   return $listaAlumnos;
