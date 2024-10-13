@@ -3,7 +3,8 @@ declare(strict_types=1);
 
 
 /**
- * Sección en la que, tras la comprobación de haber enviado el formulario, saneamos, validamos y procesamos el contenido aportado por el usuario
+ * Sección en la que, tras la comprobación de haber enviado el formulario, saneamos, validamos y procesamos el contenido
+ * aportado por el usuario
  */
 //Comprobamos si se ha enviado algo al enviar el formulario
 if (!empty($_POST)) {
@@ -18,10 +19,11 @@ if (!empty($_POST)) {
     $data['errores'] = $errores;
   } else {
     //Decodificar un texto en json
-    $data['json'] = json_decode($_POST['texto'], true);
+    $json = json_decode($_POST['texto'], true);
     //Hacemos el cálculo de los datos pedidos
-    calculosNotas($data['json']);
+    $data['json_calculos'] = calculosNotas($json);
     //Hacemos una lista con la distribución de alumnos
+    $ata['listados'] = listadoAlumnos($json);
   }
 
 }
@@ -102,7 +104,7 @@ function calcMediaAlumno(array $notas): float
     $notasAlumno += $nota;
   }//foreach $notas
 
-  return round($notasAlumno / count($notas), 2);
+  return ($notasAlumno / count($notas));
 }
 
 /**
@@ -182,8 +184,8 @@ function calculosNotas(array $json): array
 
 /**
  * Función que clasifica al alumnado teniendo en cuenta el número de aprobados y suspensos, de forma:
- * - Lista con 0 suspensos
- * - Lista con 1 o más suspensos
+ * - Lista aprueban todo (0 suspensos)
+ * - Lista suspenden almenos 1 (1 o más suspensos)
  * - Lista de los que promocionan (máx 1 suspenso)
  * - Lista de los que no promocionan (más de 1 suspenso)
  *
@@ -192,11 +194,41 @@ function calculosNotas(array $json): array
  */
 function listadoAlumnos(array $json): array
 {
-  foreach ($json as $asingaturas => $alumnos) {
+  $listaAlumnos = [];
+  $suspensosAlumno = [];
+
+  //Calculamos el número de suspensos que tiene cada alumno en cada materia según su nota media
+  foreach ($json as $alumnos) {
     foreach ($alumnos as $alumno => $notas) {
       $mediaAlumno = calcMediaAlumno($notas);
+      if (!isset($suspensosAlumno[$alumno])) {
+        $suspensosAlumno[$alumno] = 0;
+      }
+      if ($mediaAlumno < 5) {
+        $suspensosAlumno[$alumno]++;
+      }
     }
   }
+
+  foreach ($suspensosAlumno as $alumno => $suspensos) {
+
+    //Clasificamos a los alumnos según tengan algún suspenso o no
+    if ($suspensos === 0) {
+      $listaAlumnos['sinSuspensos'] = $alumno;
+    } else {
+      $listaAlumnos['conSuspensos'] = $alumno;
+    }
+
+    //Clasificamos a los alumnos según promocionen o no
+    if ($suspensos <= 1) {
+      $listaAlumnos['promocionan'] = $alumno;
+    } else {
+      $listaAlumnos['noPromocionan'] = $alumno;
+    }
+  }
+
+
+  return $listaAlumnos;
 }
 
 
