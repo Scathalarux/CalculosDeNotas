@@ -21,7 +21,7 @@ if (!empty($_POST)) {
     //Decodificar un texto en json
     $json = json_decode($_POST['texto'], true);
     //Hacemos el cálculo de los datos pedidos
-    $data['json_calculos'] = calculosNotas($json);
+    $data['json_calculos'] = calcNotas($json);
     //Hacemos una lista con la distribución de alumnos
     $ata['listados'] = listadoAlumnos($json);
   }
@@ -118,7 +118,7 @@ function calcMediaAlumno(array $notas): float
  * @param array $json JSON decodificado proveniente del texto introducido por el usuario
  * @return array conjunto de datos pedidos y formateados según se pide para cada asignatura
  */
-function calculosNotas(array $json): array
+function calcNotas(array $json): array
 {
   $resultados = [];
   foreach ($json as $asignaturas => $alumnos) {
@@ -139,7 +139,6 @@ function calculosNotas(array $json): array
       $mediaAlumno = calcMediaAlumno($notas);
       $notasAsignatura += $mediaAlumno;
 
-
       //Según la media que tiene cada alumno, lo clasificamos como aprobado o suspenso en esa asignatura
       if ($mediaAlumno >= 5) {
         $asignatura['aprobados']++;
@@ -149,19 +148,18 @@ function calculosNotas(array $json): array
 
       //Comprobamos si el alumno tiene la nota máxima
       if ($mediaAlumno > $max['nota']) {
-        $max['nota'] =
-          number_format($mediaAlumno, 2, ',');
+        $max['nota'] = $mediaAlumno;
         $max['alumno'] = $alumno;
       }
 
       //Comprobamos si el alumno tiene la nota mínima
       if ($mediaAlumno < $min['nota']) {
-        $min['nota'] = number_format($mediaAlumno, 2, ',');
+        $min['nota'] = $mediaAlumno;
         $min['alumno'] = $alumno;
       }
 
     }//foreach $alumnos
-    $asignatura['media'] = number_format((round($notasAsignatura / count($alumnos), 1)), 2, ',');
+    $asignatura['media'] = (round($notasAsignatura / count($alumnos), 1));
 
     //Nos aseguramos de que hay alumnos a los que analizar y clasificar
     if (!empty($alumnos)) {
@@ -211,7 +209,6 @@ function listadoAlumnos(array $json): array
   }
 
   foreach ($suspensosAlumno as $alumno => $suspensos) {
-
     //Clasificamos a los alumnos según tengan algún suspenso o no
     if ($suspensos === 0) {
       $listaAlumnos['sinSuspensos'] = $alumno;
@@ -226,8 +223,6 @@ function listadoAlumnos(array $json): array
       $listaAlumnos['noPromocionan'] = $alumno;
     }
   }
-
-
   return $listaAlumnos;
 }
 
