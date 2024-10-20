@@ -8,23 +8,23 @@ declare(strict_types=1);
  */
 //Comprobamos si se ha enviado algo al enviar el formulario
 if (!empty($_POST)) {
-  //Saneamos el texto introducido por el usuario para tenerlo disponible para mostrar en la vista
-  $data['input_texto'] = filter_var($_POST['texto'], FILTER_SANITIZE_SPECIAL_CHARS);
+    //Saneamos el texto introducido por el usuario para tenerlo disponible para mostrar en la vista
+    $data['input_texto'] = filter_var($_POST['texto'], FILTER_SANITIZE_SPECIAL_CHARS);
 
-  //Validamos el texto introducido para conocer si cumple los criterios necesarios para su procesamiento
-  $errores = checkForm($_POST['texto']);
+    //Validamos el texto introducido para conocer si cumple los criterios necesarios para su procesamiento
+    $errores = checkForm($_POST['texto']);
 
-  //Teniendo en cuenta la aparición de errores, si los hay los mostramos y sino se pasa al procesamiento
-  if (count($errores) > 0) {
-    $data['errores'] = $errores;
-  } else {
-    //Decodificar un texto en json
-    $json = json_decode($_POST['texto'], true);
-    //Hacemos el cálculo de los datos pedidos
-    $data['json_calculos'] = calcNotas($json);
-    //Hacemos una lista con la distribución de alumnos
-    $data['listados'] = listadoAlumnos($json);
-  }
+    //Teniendo en cuenta la aparición de errores, si los hay los mostramos y sino se pasa al procesamiento
+    if (count($errores) > 0) {
+        $data['errores'] = $errores;
+    } else {
+        //Decodificar un texto en json
+        $json = json_decode($_POST['texto'], true);
+        //Hacemos el cálculo de los datos pedidos
+        $data['json_calculos'] = calcNotas($json);
+        //Hacemos una lista con la distribución de alumnos
+        $data['listados'] = listadoAlumnos($json);
+    }
 
 }
 /**
@@ -33,62 +33,63 @@ if (!empty($_POST)) {
  * - Si el JSON es válido
  * - Si el texto tiene el formato establecido en la práctica
  *
- * @param string $texto texto recibido a través del textarea
+ * @param string $texto texto recibido a través del formulario
  * @return array conjunto de errores detectados
  */
 function checkForm(string $texto): array
 {
-  $errores = [];
+    $errores = [];
 
-  //Comprobamos si el texto enviado tiene contenido
-  if (empty($texto)) {
-    $errores['texto'][] = 'Inserte un texto a analizar';
-  } else {
-    //Decodificar un texto en json
-    $json = json_decode($texto, true);
-
-    //Comprobamos si hay errores en la decodificación
-    if (is_null($json)) {
-      $errores['texto'][] = 'JSON incorrecto: Inserte un texto con formato JSON válido';
+    //Comprobamos si el texto enviado tiene contenido
+    if (empty($texto)) {
+        $errores['texto'][] = 'Inserte un texto a analizar';
     } else {
-      //comprobamos que se introduzca un conjunto de elementos
-      if (!is_array($json)) {
-        $errores['texto'][] = 'Contenido inválido: debe introducir un conjunto de asignaturas';
-      } else {
+        //Decodificar el texto en json
+        $json = json_decode($texto, true);
 
-        foreach ($json as $asignaturas => $alumnos) {
+        //Comprobamos si hay errores en la decodificación
+        if (is_null($json)) {
+            $errores['texto'][] = 'JSON incorrecto: Inserte un texto con formato JSON válido';
+        } else {
+            //Comprobamos que se introduzca un conjunto de elementos inicialmente
+            if (!is_array($json)) {
+                $errores['texto'][] = 'Contenido inválido: debe introducir un conjunto de asignaturas con sus alumnos y notas';
+            } else {
 
-          //Comprobamos que el primer elemento es un tipo texto no vacío seguido de un array
-          if (!is_string($asignaturas) || mb_strlen(trim($asignaturas)) < 1) {
-            $errores['texto'][] = "El nombre de la asignatura '$asignaturas' no es válido, debe ser tipo texto";
-          }
-          if (!is_array($alumnos)) {
-            $errores['texto'][] = "Error en el contenido de la asignatura '$asignaturas'. Debe tener un conjunto de alumnos con sus notas";
-          } else {
+                foreach ($json as $asignaturas => $alumnos) {
 
-            foreach ($alumnos as $alumno => $notas) {
-              //Comprobamos que el segundo elemento es un tipo texto no vacío seguido de un array
-              if (!is_string($alumno) || mb_strlen(trim($alumno)) < 1) {
-                $errores['texto'][] = "El nombre del alumno '$alumno' en '$asignaturas' no es válido, debe ser tipo texto";
-              }
-              if (!is_array($notas)) {
-                $errores['texto'][] = "Error en el contenido del alumno '$alumno' en '$asignaturas'. Debe tener un conjunto de notas";
-              } else {
+                    //Comprobamos que el primer elemento es un tipo texto no vacío seguido de un array
+                    if (!is_string($asignaturas) || mb_strlen(trim($asignaturas)) < 1) {
+                        $errores['texto'][] = "El nombre de la asignatura '$asignaturas' no es válido, debe ser tipo texto";
+                    }
+                    if (!is_array($alumnos)) {
+                        $errores['texto'][] = "Error en el contenido de la asignatura '$asignaturas'. Debe tener un conjunto de alumnos con sus notas";
+                    } else {
 
-                foreach ($notas as $nota) {
-                  //Comprobamos que cada una de las notas introducidas es de tipo numérico
-                  if (!is_numeric($nota)) {
-                    $errores['texto'][] = "Error en la nota '$nota' del alumno '$alumno' en '$asignaturas'. Debe ser un número válido";
-                  }
-                }//foreach notas
-              }
-            }//foreach alumnos
-          }
-        }//foreach asignaturas
-      }
+                        foreach ($alumnos as $alumno => $notas) {
+                            //Comprobamos que el segundo elemento es un tipo texto no vacío seguido de un array
+                            //Alternativa: utilizar regex /[\p{L}]/ui
+                            if (!is_string($alumno) || mb_strlen(trim($alumno)) < 1) {
+                                $errores['texto'][] = "El nombre del alumno '$alumno' en '$asignaturas' no es válido, debe ser tipo texto";
+                            }
+                            if (!is_array($notas)) {
+                                $errores['texto'][] = "Error en el contenido del alumno '$alumno' en '$asignaturas'. Debe tener un conjunto de notas";
+                            } else {
+
+                                foreach ($notas as $nota) {
+                                    //Comprobamos que cada una de las notas introducidas sea de tipo numérico
+                                    if (!is_numeric($nota)) {
+                                        $errores['texto'][] = "Error en la nota '$nota' del alumno '$alumno' en '$asignaturas'. Debe ser un número válido";
+                                    }
+                                }//foreach notas
+                            }
+                        }//foreach alumnos
+                    }
+                }//foreach asignaturas
+            }
+        }
     }
-  }
-  return $errores;
+    return $errores;
 }
 
 /**
@@ -99,12 +100,12 @@ function checkForm(string $texto): array
  */
 function calcMediaAlumno(array $notas): float
 {
-  $notasAlumno = 0;
-  foreach ($notas as $nota) {
-    $notasAlumno += $nota;
-  }//foreach $notas
+    $notasAlumno = 0;
+    foreach ($notas as $nota) {
+        $notasAlumno += $nota;
+    }//foreach $notas
 
-  return ($notasAlumno / count($notas));
+    return ($notasAlumno / count($notas));
 }
 
 /**
@@ -120,70 +121,74 @@ function calcMediaAlumno(array $notas): float
  */
 function calcNotas(array $json): array
 {
-  $resultados = [];
-  foreach ($json as $asignaturas => $alumnos) {
-    $notasAsignatura = 0;
-    $asignatura['suspensos'] = 0;
-    $asignatura['aprobados'] = 0;
-    $max = [];
-    $max['alumno'] = 'nobody';
-    $max['nota'] = -1;
+    $resultados = [];
+    foreach ($json as $asignaturas => $alumnos) {
+        //Definimos las variables con las que trabajaremos
+        $notasAsignatura = 0;
+        $asignatura['suspensos'] = 0;
+        $asignatura['aprobados'] = 0;
+        $max = [];
+        $max['alumno'] = 'nobody';
+        $max['nota'] = -1;
+        $min = [];
+        $min['alumno'] = 'nobody';
+        $min['nota'] = 11;
 
-    $min = [];
-    $min['alumno'] = 'nobody';
-    $min['nota'] = 11;
+        //Nos recorremos los alumnos y sus notas para los cálculos
+        foreach ($alumnos as $alumno => $notas) {
+            //Calculamos la nota media del alumno
+            $mediaAlumno = calcMediaAlumno($notas);
+            $notasAsignatura += $mediaAlumno;
 
+            //Según la media que tiene cada alumno, lo clasificamos como aprobado o suspenso en esa asignatura
+            if ($mediaAlumno >= 5) {
+                $asignatura['aprobados']++;
+            } else {
+                $asignatura['suspensos']++;
+            }
 
-    foreach ($alumnos as $alumno => $notas) {
+            //Comprobamos si el alumno tiene la media más alta de la asignatura, si lo es asignamos
+            if ($mediaAlumno > $max['nota']) {
+                $max['nota'] = $mediaAlumno;
+                $max['alumno'] = $alumno;
+            }
 
-      $mediaAlumno = calcMediaAlumno($notas);
-      $notasAsignatura += $mediaAlumno;
+            //Comprobamos si el alumno tiene la media más baja de la asignatura, si lo es asignamos
+            if ($mediaAlumno < $min['nota']) {
+                $min['nota'] = $mediaAlumno;
+                $min['alumno'] = $alumno;
+            }
 
-      //Según la media que tiene cada alumno, lo clasificamos como aprobado o suspenso en esa asignatura
-      if ($mediaAlumno >= 5) {
-        $asignatura['aprobados']++;
-      } else {
-        $asignatura['suspensos']++;
-      }
+        }//foreach $alumnos
 
-      //Comprobamos si el alumno tiene la nota máxima
-      if ($mediaAlumno > $max['nota']) {
-        $max['nota'] = $mediaAlumno;
-        $max['alumno'] = $alumno;
-      }
+        //Calculamos la media de la asignatura
+        $asignatura['media'] = round($notasAsignatura / count($alumnos), 1);
 
-      //Comprobamos si el alumno tiene la nota mínima
-      if ($mediaAlumno < $min['nota']) {
-        $min['nota'] = $mediaAlumno;
-        $min['alumno'] = $alumno;
-      }
+        //Nos aseguramos de que hay alumnos a los que analizar y clasificar
+        if (!empty($alumnos)) {
+            $asignatura['max'] = $max;
+            $asignatura['min'] = $min;
+        } else {
+            $asignatura['max'] = [
+                'alumno' => '-',
+                'nota' => '-',
+            ];
+            $asignatura['min'] = [
+                'alumno' => '-',
+                'nota' => '-',
+            ];
+        }
 
-    }//foreach $alumnos
-    $asignatura['media'] = (round($notasAsignatura / count($alumnos), 1));
+        $resultados[$asignaturas] = $asignatura;
 
-    //Nos aseguramos de que hay alumnos a los que analizar y clasificar
-    if (!empty($alumnos)) {
-      $asignatura['max'] = $max;
-      $asignatura['min'] = $min;
-    } else {
-      $asignatura['max'] = [
-        'alumno' => '-',
-        'nota' => '-',
-      ];
-      $asignatura['min'] = [
-        'alumno' => '-',
-        'nota' => '-',
-      ];
-    }
-    $resultados[$asignaturas] = $asignatura;
-  }//foreach $json
-  return $resultados;
+    }//foreach $json
+    return $resultados;
 }
 
 /**
  * Función que clasifica al alumnado teniendo en cuenta el número de aprobados y suspensos, de forma:
- * - Lista aprueban todo (0 suspensos)
- * - Lista suspenden almenos 1 (1 o más suspensos)
+ * - Lista aprueban sin suspensos
+ * - Lista suspenden al menos 1 (1 o más suspensos)
  * - Lista de los que promocionan (máx 1 suspenso)
  * - Lista de los que no promocionan (más de 1 suspenso)
  *
@@ -192,38 +197,38 @@ function calcNotas(array $json): array
  */
 function listadoAlumnos(array $json): array
 {
-  $listaAlumnos = [];
-  $suspensosAlumno = [];
+    $listaAlumnos = [];
+    $suspensosAlumno = [];
 
-  //Calculamos el número de suspensos que tiene cada alumno en cada materia según su nota media
-  foreach ($json as $alumnos) {
-    foreach ($alumnos as $alumno => $notas) {
-      $mediaAlumno = calcMediaAlumno($notas);
-      if (!isset($suspensosAlumno[$alumno])) {
-        $suspensosAlumno[$alumno] = 0;
-      }
-      if ($mediaAlumno < 5) {
-        $suspensosAlumno[$alumno]++;
-      }
-    }
-  }
-
-  foreach ($suspensosAlumno as $alumno => $suspensos) {
-    //Clasificamos a los alumnos según tengan algún suspenso o no
-    if ($suspensos === 0) {
-      $listaAlumnos['sinSuspensos'][] = $alumno;
-    } else {
-      $listaAlumnos['conSuspensos'][] = $alumno;
+    //Calculamos el número de suspensos que tiene cada alumno en cada materia según su nota media
+    foreach ($json as $alumnos) {
+        foreach ($alumnos as $alumno => $notas) {
+            $mediaAlumno = calcMediaAlumno($notas);
+            if (!isset($suspensosAlumno[$alumno])) {
+                $suspensosAlumno[$alumno] = 0;
+            }
+            if ($mediaAlumno < 5) {
+                $suspensosAlumno[$alumno]++;
+            }
+        }
     }
 
-    //Clasificamos a los alumnos según promocionen o no
-    if ($suspensos <= 1) {
-      $listaAlumnos['promocionan'][] = $alumno;
-    } else {
-      $listaAlumnos['noPromocionan'][] = $alumno;
+    foreach ($suspensosAlumno as $alumno => $suspensos) {
+        //Clasificamos a los alumnos según tengan algún suspenso o no
+        if ($suspensos === 0) {
+            $listaAlumnos['sinSuspensos'][] = $alumno;
+        } else {
+            $listaAlumnos['conSuspensos'][] = $alumno;
+        }
+
+        //Clasificamos a los alumnos según promocionen o no
+        if ($suspensos <= 1) {
+            $listaAlumnos['promocionan'][] = $alumno;
+        } else {
+            $listaAlumnos['noPromocionan'][] = $alumno;
+        }
     }
-  }
-  return $listaAlumnos;
+    return $listaAlumnos;
 }
 
 

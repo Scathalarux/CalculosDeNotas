@@ -66,7 +66,7 @@
         </div>
         <div class="col-12 col-lg-6 mb-4">
             <div class="alert alert-warning h-100">
-                <h5>Alumnos que suspenden almenos 1:</h5>
+                <h5>Alumnos que suspenden al menos 1:</h5>
               <?php foreach ($data['listados']['conSuspensos'] as $alumno) { ?>
                   <ul><li><?php echo $alumno; ?></php></li></ul>
               <?php } ?>
