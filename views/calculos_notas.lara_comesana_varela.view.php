@@ -11,8 +11,8 @@
         <div class="col-12">
             <div class="alert">
                 <table class="table table-responsive-lg table-bordered table-hover" style="text-align: left">
-                <caption>Tabla resumen de las asignaturas</caption>
-                <thead class="thead-dark" style="text-align: center">
+                    <caption>Tabla resumen de las asignaturas</caption>
+                    <thead class="thead-dark" style="text-align: center">
                     <tr>
                         <th>Asignatura</th>
                         <th>Nota media</th>
@@ -22,28 +22,28 @@
                         <th>Nota mínima</th>
                     </tr>
                     </thead>
-                    <tbody style="border: 1px solid black">
+                    <tbody>
                     <?php foreach ($data['json_calculos'] as $asignatura => $datos) { ?>
                         <tr>
                             <td>
                                 <strong><?php echo ucwords($asignatura) ?></strong>
                             </td>
                             <td>
-                              <?php echo number_format($datos['media'],2,',') ?>
+                                <?php echo number_format($datos['media'], 2, ',') ?>
                             </td>
                             <td>
-                              <?php echo $datos['suspensos'] ?>
+                                <?php echo $datos['suspensos'] ?>
                             </td>
                             <td>
-                              <?php echo $datos['aprobados'] ?>
+                                <?php echo $datos['aprobados'] ?>
                             </td>
                             <td>
-                              <?php echo ucwords($datos['max']['alumno']) ?>
-                                : <?php echo number_format(round($datos['max']['nota'],1),2,',') ?>
+                                <?php echo ucwords($datos['max']['alumno']) ?>
+                                : <?php echo number_format(round($datos['max']['nota'], 1), 2, ',') ?>
                             </td>
                             <td>
-                              <?php echo ucwords($datos['min']['alumno']) ?>
-                                : <?php echo number_format(round($datos['min']['nota'],1),2,',') ?>
+                                <?php echo ucwords($datos['min']['alumno']) ?>
+                                : <?php echo number_format(round($datos['min']['nota'], 1), 2, ',') ?>
                             </td>
                         </tr>
                     <?php }; ?>
@@ -53,41 +53,63 @@
         </div>
     </div>
 <?php } ?>
-<!--Introducimos las sección en la que se hace una distribución en divs-->
-<?php if (isset($data['listados'])) { ?>
-    <div class="row">
+<!--Introducimos las sección en la que se hace la visualización de los listados en divs según el tipo de listado-->
+<?php if (isset($data['listados'])) {
+    if (isset($data['listados']['sinSuspensos'])) { ?>
+        <div class="row">
         <div class="col-12 col-lg-6 mb-4">
             <div class="alert alert-success h-100">
                 <h5>Alumnos que aprueban todo:</h5>
-              <?php foreach ($data['listados']['sinSuspensos'] as $alumno) { ?>
-                  <ul><li><?php echo $alumno; ?></php></li></ul>
-              <?php } ?>
+                <?php if (isset($data['listados']['sinSuspensos'])) {
+                    foreach ($data['listados']['sinSuspensos'] as $alumno) { ?>
+                        <ul>
+                            <li><?php echo $alumno; ?></php></li>
+                        </ul>
+                    <?php }
+                } ?>
             </div>
         </div>
+    <?php }
+    if (isset($data['listados']['conSuspensos'])) { ?>
         <div class="col-12 col-lg-6 mb-4">
             <div class="alert alert-warning h-100">
                 <h5>Alumnos que suspenden al menos 1:</h5>
-              <?php foreach ($data['listados']['conSuspensos'] as $alumno) { ?>
-                  <ul><li><?php echo $alumno; ?></php></li></ul>
-              <?php } ?>
+                <?php foreach ($data['listados']['conSuspensos'] as $alumno) { ?>
+                    <ul>
+                        <li><?php echo $alumno; ?></php></li>
+                    </ul>
+                    <?php
+                } ?>
             </div>
         </div>
+    <?php }
+    if (isset($data['listados']['promocionan'])) { ?>
         <div class="col-12 col-lg-6 mb-4">
             <div class="alert alert-primary h-100">
                 <h5>Alumnos que promocionan:</h5>
-              <?php foreach ($data['listados']['promocionan'] as $alumno) { ?>
-                  <ul><li><?php echo $alumno; ?></php></li></ul>
-              <?php } ?>
+
+                <?php foreach ($data['listados']['promocionan'] as $alumno) { ?>
+                    <ul>
+                        <li><?php echo $alumno; ?></php></li>
+                    </ul>
+                <?php } ?>
             </div>
         </div>
+    <?php }
+    if (isset($data['listados']['noPromocionan'])) { ?>
+
         <div class="col-12 col-lg-6 mb-4">
             <div class="alert alert-danger h-100">
                 <h5>Alumnos que no promocionan:</h5>
-              <?php foreach ($data['listados']['noPromocionan'] as $alumno) { ?>
-                  <ul><li><?php echo $alumno; ?></php></li></ul>
-              <?php } ?>
+                <?php foreach ($data['listados']['noPromocionan'] as $alumno) { ?>
+                    <ul>
+                        <li><?php echo $alumno; ?></php></li>
+                    </ul>
+                    <?php
+                } ?>
             </div>
         </div>
+    <?php } ?>
     </div>
 <?php } ?>
 <!--Sección que recoge los datos del usuario y muestra los errores-->
@@ -104,12 +126,12 @@
                         <textarea class="form-control" id="texto" name="texto"
                                   rows="3"><?php echo $data['input_texto'] ?? ''; ?></textarea>
                         <p class="text-danger small">
-                          <?php if (isset($data['errores'])) {
-                            foreach ($data['errores']['texto'] as $error => $mensaje) {
-                              echo $mensaje . "<br/>";
+                            <?php if (isset($data['errores'])) {
+                                foreach ($data['errores']['texto'] as $error => $mensaje) {
+                                    echo $mensaje . "<br/>";
+                                }
                             }
-                          }
-                          ?>
+                            ?>
                         </p>
                         <br/>
                     </div>

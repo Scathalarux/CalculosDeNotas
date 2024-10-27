@@ -52,7 +52,7 @@ function checkForm(string $texto): array
             $errores['texto'][] = 'JSON incorrecto: Inserte un texto con formato JSON válido';
         } else {
             //Comprobamos que se introduzca un conjunto de elementos inicialmente
-            if (!is_array($json)) {
+            if (!is_array($json)||empty($json)) {
                 $errores['texto'][] = 'Contenido inválido: debe introducir un conjunto de asignaturas con sus alumnos y notas';
             } else {
 
@@ -133,6 +133,7 @@ function calcNotas(array $json): array
         $min = [];
         $min['alumno'] = 'nobody';
         $min['nota'] = 11;
+
 
         //Nos recorremos los alumnos y sus notas para los cálculos
         foreach ($alumnos as $alumno => $notas) {
