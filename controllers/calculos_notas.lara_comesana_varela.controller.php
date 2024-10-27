@@ -52,40 +52,49 @@ function checkForm(string $texto): array
             $errores['texto'][] = 'JSON incorrecto: Inserte un texto con formato JSON válido';
         } else {
             //Comprobamos que se introduzca un conjunto de elementos inicialmente
-            if (!is_array($json)||empty($json)) {
+            if (!is_array($json)) {
                 $errores['texto'][] = 'Contenido inválido: debe introducir un conjunto de asignaturas con sus alumnos y notas';
             } else {
+                //Comprobamos que se introduzca un conjunto de elementos no vacío
+                if (empty($json)) {
+                    $errores['texto'][] = 'Contenido inválido: debe introducir un conjunto de asignaturas con sus alumnos y notas';
 
-                foreach ($json as $asignaturas => $alumnos) {
+                } else {
 
-                    //Comprobamos que el primer elemento es un tipo texto no vacío seguido de un array
-                    if (!is_string($asignaturas) || mb_strlen(trim($asignaturas)) < 1) {
-                        $errores['texto'][] = "El nombre de la asignatura '$asignaturas' no es válido, debe ser tipo texto";
-                    }
-                    if (!is_array($alumnos)) {
-                        $errores['texto'][] = "Error en el contenido de la asignatura '$asignaturas'. Debe tener un conjunto de alumnos con sus notas";
-                    } else {
+                    foreach ($json as $asignaturas => $alumnos) {
 
-                        foreach ($alumnos as $alumno => $notas) {
-                            //Comprobamos que el segundo elemento es un tipo texto no vacío seguido de un array
-                            //Alternativa: utilizar regex /[\p{L}]/ui
-                            if (!is_string($alumno) || mb_strlen(trim($alumno)) < 1) {
-                                $errores['texto'][] = "El nombre del alumno '$alumno' en '$asignaturas' no es válido, debe ser tipo texto";
-                            }
-                            if (!is_array($notas)) {
-                                $errores['texto'][] = "Error en el contenido del alumno '$alumno' en '$asignaturas'. Debe tener un conjunto de notas";
-                            } else {
+                        //Comprobamos que el primer elemento es un tipo texto no vacío seguido de un array
+                        if (!is_string($asignaturas) || mb_strlen(trim($asignaturas)) < 1) {
+                            $errores['texto'][] = "El nombre de la asignatura '$asignaturas' no es válido, debe ser tipo texto";
+                        }
+                        if (!is_array($alumnos)) {
+                            $errores['texto'][] = "Error en el contenido de la asignatura '$asignaturas'. Debe tener un conjunto de alumnos con sus notas";
+                        } else {
 
-                                foreach ($notas as $nota) {
-                                    //Comprobamos que cada una de las notas introducidas sea de tipo numérico
-                                    if (!is_numeric($nota)) {
-                                        $errores['texto'][] = "Error en la nota '$nota' del alumno '$alumno' en '$asignaturas'. Debe ser un número válido";
-                                    }
-                                }//foreach notas
-                            }
-                        }//foreach alumnos
-                    }
-                }//foreach asignaturas
+                            foreach ($alumnos as $alumno => $notas) {
+                                //Comprobamos que el segundo elemento es un tipo texto no vacío seguido de un array
+                                //Alternativa: utilizar regex /[\p{L}]/ui
+                                if (!is_string($alumno) || mb_strlen(trim($alumno)) < 1) {
+                                    $errores['texto'][] = "El nombre del alumno '$alumno' en '$asignaturas' no es válido, debe ser tipo texto";
+                                }
+                                if (!is_array($notas)) {
+                                    $errores['texto'][] = "Error en el contenido del alumno '$alumno' en '$asignaturas'. Debe tener un conjunto de notas";
+                                } else {
+
+                                    foreach ($notas as $nota) {
+                                        //Comprobamos que cada una de las notas introducidas sea de tipo numérico
+                                        if (!is_numeric($nota)) {
+                                            $errores['texto'][] = "Error en la nota '$nota' del alumno '$alumno' en '$asignaturas'. Debe ser un número válido";
+                                        } else if ($nota > 10 || $nota < 0) {
+                                            $errores['texto'][] = "Error en la nota '$nota' del alumno '$alumno' en '$asignaturas'. Debe ser un número entre 0 y 10";
+
+                                        }
+                                    }//foreach notas
+                                }
+                            }//foreach alumnos
+                        }
+                    }//foreach asignaturas
+                }
             }
         }
     }
